@@ -20,7 +20,8 @@ namespace APICatalogo.Controllers
         [HttpGet]
         public ActionResult<IEnumerable<Produto>> Get()
         {
-            var produtos = _context.Produtos.ToList();
+            // AsNoTracking serve para tornar essa consulta não rastreada, melhorando o desempenho
+            var produtos = _context.Produtos.AsNoTracking().ToList();
             if (produtos is null)
             {
                 return NotFound("Produtos não encontrados...");

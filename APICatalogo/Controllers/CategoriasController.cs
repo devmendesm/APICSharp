@@ -25,7 +25,8 @@ namespace APICatalogo.Controllers
         [HttpGet]
         public ActionResult<IEnumerable<Categoria>> Get()
         {
-            var categorias = _context.Categorias.ToList();
+            // AsNoTracking serve para tornar essa consulta não rastreada, melhorando o desempenho
+            var categorias = _context.Categorias.AsNoTracking().ToList();
             if (categorias is null)
             {
                 return NotFound("Categorias não encontradas...");
