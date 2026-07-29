@@ -18,10 +18,10 @@ namespace APICatalogo.Controllers
         }
 
         [HttpGet]
-        public ActionResult<IEnumerable<Produto>> Get()
+        public async Task<ActionResult<IEnumerable<Produto>>> GetAsync()
         {
             // AsNoTracking serve para tornar essa consulta não rastreada, melhorando o desempenho
-            var produtos = _context.Produtos.AsNoTracking().ToList();
+            var produtos = await _context.Produtos.AsNoTracking().ToListAsync();
             if (produtos is null)
             {
                 return NotFound("Produtos não encontrados...");
@@ -29,10 +29,10 @@ namespace APICatalogo.Controllers
             return produtos;
         }
 
-        [HttpGet("{id:int}", Name="ObterProduto")]
-        public ActionResult<Produto> Get(int id)
+        [HttpGet("{id:int:min(1)}", Name="ObterProduto")]
+        public async Task<ActionResult<Produto>> GetAsync(int id)
         {
-            var produto = _context.Produtos.FirstOrDefault(p => p.ProdutoId == id);
+            var produto = await _context.Produtos.FirstOrDefaultAsync(p => p.ProdutoId == id);
             if (produto is null)
             {
                 return NotFound($"Produto com o id {id} não encontrado...");
