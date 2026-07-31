@@ -13,11 +13,13 @@ namespace APICatalogo.Controllers
     {
         private readonly AppDbContext _context;
         private readonly IConfiguration _configuration;
+        private readonly ILogger _logger;
 
-        public CategoriasController(AppDbContext context, IConfiguration configuration)
+        public CategoriasController(AppDbContext context, IConfiguration configuration, ILogger<CategoriasController> logger)
         {
             _context = context;
             _configuration = configuration;
+            _logger = logger;
         }
 
         [HttpGet("LerArquivoConfiguracao")]
@@ -34,6 +36,8 @@ namespace APICatalogo.Controllers
         [HttpGet("produtos")]
         public ActionResult<IEnumerable<Categoria>> GetCategoriasProdutos()
         {
+            _logger.LogInformation("============== GET api/categorias/produtos ==============");
+
             return _context.Categorias.Include(p => p.Produtos).ToList();
         }
 
@@ -41,6 +45,8 @@ namespace APICatalogo.Controllers
         [ServiceFilter(typeof(ApiLoggingFilter))]
         public ActionResult<IEnumerable<Categoria>> Get()
         {
+            _logger.LogInformation("============== GET api/categorias ==============");
+
             try
             {
                 //throw new DataMisalignedException();
@@ -59,11 +65,15 @@ namespace APICatalogo.Controllers
         [HttpGet("{id:int}", Name = "ObterCategoria")]
         public ActionResult<Categoria> Get(int id)
         {
+            _logger.LogInformation($"============== GET api/categorias/id = {id} ==============");
+
             try
             {
                 var categoria = _context.Categorias.FirstOrDefault(p => p.CategoriaId == id);
                 if (categoria is null)
                 {
+                    _logger.LogInformation($"============== GET api/categorias/id = {id} NOT FOUND ==============");
+
                     return NotFound($"Categoria com o id {id} não encontrado...");
                 }
                 return categoria;
