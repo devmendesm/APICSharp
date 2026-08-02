@@ -47,19 +47,11 @@ namespace APICatalogo.Controllers
         {
             _logger.LogInformation("============== GET api/categorias ==============");
 
-            try
-            {
-                //throw new DataMisalignedException();
-                // AsNoTracking serve para tornar essa consulta não rastreada, melhorando o desempenho
-                var categorias = _context.Categorias.AsNoTracking().ToList();
-                return categorias;
-            }
-            catch (Exception)
-            {
+            //throw new DataMisalignedException();
+            // AsNoTracking serve para tornar essa consulta não rastreada, melhorando o desempenho
+            var categorias = _context.Categorias.AsNoTracking().ToList();
+            return categorias;
 
-                return StatusCode(StatusCodes.Status500InternalServerError, "Ocorreu um erro na sua solicitação!");
-            }
-            
         }
 
         [HttpGet("{id:int}", Name = "ObterCategoria")]
@@ -67,22 +59,14 @@ namespace APICatalogo.Controllers
         {
             _logger.LogInformation($"============== GET api/categorias/id = {id} ==============");
 
-            try
+            var categoria = _context.Categorias.FirstOrDefault(p => p.CategoriaId == id);
+            if (categoria is null)
             {
-                var categoria = _context.Categorias.FirstOrDefault(p => p.CategoriaId == id);
-                if (categoria is null)
-                {
-                    _logger.LogInformation($"============== GET api/categorias/id = {id} NOT FOUND ==============");
+                _logger.LogInformation($"============== GET api/categorias/id = {id} NOT FOUND ==============");
 
-                    return NotFound($"Categoria com o id {id} não encontrado...");
-                }
-                return categoria;
+                return NotFound($"Categoria com o id {id} não encontrado...");
             }
-            catch (Exception)
-            {
-
-                return StatusCode(StatusCodes.Status500InternalServerError, "Ocorreu um erro na sua solicitação!");
-            }
+            return categoria;
         }
 
         [HttpPost]
