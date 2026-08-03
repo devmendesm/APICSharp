@@ -31,6 +31,7 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 builder.Services.AddScoped<ApiLoggingFilter>();
 
 builder.Services.AddScoped<ICategoriaRepository, CategoriaRepository>();
+builder.Services.AddScoped<IProdutoRepository, ProdutoRepository>();
 
 /* //DESCOMENTAR CASO QUEIRA GRAVAR OS LOGS DA APLICAÇÃO EM TXT
 builder.Logging.AddProvider(new CustomLoggerProvider(new CustomLoggerProviderConfiguration
