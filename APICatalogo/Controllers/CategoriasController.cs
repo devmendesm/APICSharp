@@ -12,7 +12,7 @@ namespace APICatalogo.Controllers
     [ApiController]
     public class CategoriasController : ControllerBase
     {
-        private readonly ICategoriaRepository _repository;
+        private readonly IGenericRepository<Categoria> _repository;
         private readonly IConfiguration _configuration;
         private readonly ILogger _logger;
 
@@ -34,15 +34,6 @@ namespace APICatalogo.Controllers
             return $"Chave1 = {valor1} \nChave2 = {valor2} \nSeção1 => Chave2 = {secao1}";
         }
 
-        [HttpGet("produtos")]
-        public ActionResult<IEnumerable<Categoria>> GetCategoriasProdutos()
-        {
-            _logger.LogInformation("============== GET api/categorias/produtos ==============");
-
-            var categoriasProdutos = _repository.GetCategoriasProdutos();
-
-            return Ok(categoriasProdutos);
-        }
 
         [HttpGet]
         [ServiceFilter(typeof(ApiLoggingFilter))]
@@ -52,7 +43,7 @@ namespace APICatalogo.Controllers
 
             //throw new DataMisalignedException();
             // AsNoTracking serve para tornar essa consulta não rastreada, melhorando o desempenho
-            var categorias = _repository.GetCategorias();
+            var categorias = _repository.GetAll();
             return Ok(categorias);
 
         }
@@ -62,7 +53,7 @@ namespace APICatalogo.Controllers
         {
             _logger.LogInformation($"============== GET api/categorias/id = {id} ==============");
 
-            var categoria = _repository.GetCategoria(id);
+            var categoria = _repository.Get(c => c.CategoriaId == id);
             if (categoria is null)
             {
                 _logger.LogInformation($"============== GET api/categorias/id = {id} NOT FOUND ==============");
@@ -102,7 +93,7 @@ namespace APICatalogo.Controllers
         [HttpDelete("{id:int}")]
         public ActionResult Delete(int id)
         {
-            var categoria = _repository.GetCategoria(id);
+            var categoria = _repository.Get(c => c.CategoriaId == id);
 
             if (categoria is null)
             {
@@ -110,7 +101,7 @@ namespace APICatalogo.Controllers
                 return NotFound($"Categoria com id {id} não localizado...");
             }
 
-            var categoriaDeletada = _repository.Delete(id);
+            var categoriaDeletada = _repository.Delete(categoria);
 
             return Ok(categoriaDeletada);
         }
