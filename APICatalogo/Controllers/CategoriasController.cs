@@ -12,15 +12,15 @@ namespace APICatalogo.Controllers
     [ApiController]
     public class CategoriasController : ControllerBase
     {
-        private readonly IGenericRepository<Categoria> _repository;
         private readonly IConfiguration _configuration;
         private readonly ILogger _logger;
+        private readonly IUnitOfWork _ufo;
 
-        public CategoriasController(ICategoriaRepository repository, IConfiguration configuration, ILogger<CategoriasController> logger)
+        public CategoriasController(IConfiguration configuration, ILogger<CategoriasController> logger, IUnitOfWork ufo)
         {
-            _repository = repository;
             _configuration = configuration;
             _logger = logger;
+            _ufo = ufo;
         }
 
         [HttpGet("LerArquivoConfiguracao")]
@@ -41,9 +41,7 @@ namespace APICatalogo.Controllers
         {
             _logger.LogInformation("============== GET api/categorias ==============");
 
-            //throw new DataMisalignedException();
-            // AsNoTracking serve para tornar essa consulta não rastreada, melhorando o desempenho
-            var categorias = _repository.GetAll();
+            var categorias = _ufo.CategoriaRepository.GetAll();
             return Ok(categorias);
 
         }
@@ -53,7 +51,7 @@ namespace APICatalogo.Controllers
         {
             _logger.LogInformation($"============== GET api/categorias/id = {id} ==============");
 
-            var categoria = _repository.Get(c => c.CategoriaId == id);
+            var categoria = _ufo.CategoriaRepository.Get(c => c.CategoriaId == id);
             if (categoria is null)
             {
                 _logger.LogInformation($"============== GET api/categorias/id = {id} NOT FOUND ==============");
@@ -71,7 +69,8 @@ namespace APICatalogo.Controllers
                 return BadRequest("Dados Inválidos!");
             }
 
-            var categoriaCriada = _repository.Create(categoria);
+            var categoriaCriada = _ufo.CategoriaRepository.Create(categoria);
+            _ufo.Commit();
 
             return new CreatedAtRouteResult("ObterCategoria", new { id = categoriaCriada.CategoriaId }, categoriaCriada);
         }
@@ -85,7 +84,8 @@ namespace APICatalogo.Controllers
                 return BadRequest("Dados Inválidos!");
             }
 
-            var categoriaAtualizada = _repository.Update(categoria);
+            var categoriaAtualizada = _ufo.CategoriaRepository.Update(categoria);
+            _ufo.Commit();
 
             return Ok(categoriaAtualizada);
         }
@@ -93,7 +93,7 @@ namespace APICatalogo.Controllers
         [HttpDelete("{id:int}")]
         public ActionResult Delete(int id)
         {
-            var categoria = _repository.Get(c => c.CategoriaId == id);
+            var categoria = _ufo.CategoriaRepository.Get(c => c.CategoriaId == id);
 
             if (categoria is null)
             {
@@ -101,7 +101,8 @@ namespace APICatalogo.Controllers
                 return NotFound($"Categoria com id {id} não localizado...");
             }
 
-            var categoriaDeletada = _repository.Delete(categoria);
+            var categoriaDeletada = _ufo.CategoriaRepository.Delete(categoria);
+            _ufo.Commit();
 
             return Ok(categoriaDeletada);
         }
