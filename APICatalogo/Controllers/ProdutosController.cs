@@ -49,7 +49,7 @@ namespace APICatalogo.Controllers
 
             var produtosDto = _mapper.Map<IEnumerable<ProdutoDTO>>(produtos);
 
-            return Ok(produtos);
+            return Ok(produtosDto);
         }
 
         [HttpGet("{id:int:min(1)}", Name = "ObterProduto")]
