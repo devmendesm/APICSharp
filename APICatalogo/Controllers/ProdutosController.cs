@@ -4,6 +4,7 @@ using APICatalogo.Models;
 using APICatalogo.Repositories;
 using AutoMapper;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -78,6 +79,39 @@ namespace APICatalogo.Controllers
             var produtoCriadoDto = _mapper.Map<ProdutoDTO>(produtoCriado);
 
             return new CreatedAtRouteResult("ObterProduto", new { id = produtoCriadoDto.ProdutoId }, produtoCriadoDto);
+        }
+
+        [HttpPatch("{id}/UpdatePartial")]
+        public ActionResult<ProdutoDTOUpdateResponse> Patch(int id, JsonPatchDocument<ProdutoDTOUpdateRequest> patchProdutoDTO)
+        {
+            if (patchProdutoDTO is null || id <= 0)
+                return BadRequest();
+
+            var produto = _ufo.ProdutoRepository.Get(c => c.ProdutoId == id);
+
+            if (produto is null)
+                return NotFound();
+
+            var produtoUpdateRequest = _mapper.Map<ProdutoDTOUpdateRequest>(produto);
+
+            patchProdutoDTO.ApplyTo(produtoUpdateRequest, ModelState);
+
+            var modelValido = ModelState.IsValid;
+            var tryValido = TryValidateModel(produtoUpdateRequest);
+
+            Console.WriteLine($"ModelState: {modelValido}");
+            Console.WriteLine($"TryValidateModel: {tryValido}");
+
+            // TryValidateModel vai validar o modelo com base nas regras que configuramos
+            if (!ModelState.IsValid || !TryValidateModel(produtoUpdateRequest))
+                return BadRequest(ModelState);
+
+            // Mapeia de volta para produto
+            _mapper.Map(produtoUpdateRequest, produto);
+            _ufo.ProdutoRepository.Update(produto);
+            _ufo.Commit();
+
+            return Ok(_mapper.Map<ProdutoDTOUpdateResponse>(produto));
         }
 
         [HttpPut("{id:int}")]
