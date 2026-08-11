@@ -28,9 +28,9 @@ public class UnitOfWork : IUnitOfWork
         get { return _categoriaRepo = _categoriaRepo ?? new CategoriaRepository(_context); }
     }
 
-    public void Commit()
+    public async Task CommitAsync()
     {
-        _context.SaveChanges();
+       await _context.SaveChangesAsync();
     }
 
     // Libera recursos alocados do DbContext
