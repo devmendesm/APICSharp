@@ -19,14 +19,75 @@ public class AuthController : ControllerBase
     private readonly UserManager<ApplicationUser> _userManager;
     private readonly RoleManager<IdentityRole> _roleManager;
     private readonly IConfiguration _configuration;
+    private readonly ILogger<AuthController> _logger;
 
     public AuthController(ITokenService tokenService, UserManager<ApplicationUser> userManager,
-                            RoleManager<IdentityRole> roleManager, IConfiguration configuration)
+                            RoleManager<IdentityRole> roleManager, IConfiguration configuration,
+                            ILogger<AuthController> logger)
     {
         _tokenService = tokenService;
         _userManager = userManager;
         _roleManager = roleManager;
         _configuration = configuration;
+        _logger = logger;
+    }
+
+    [HttpPost]
+    [Route("CreateRole")]
+    public async Task<IActionResult> CreateRole(string roleName)
+    {
+        var roleExist = await _roleManager.RoleExistsAsync(roleName);
+
+        if (!roleExist)
+        {
+            var roleResult = await _roleManager.CreateAsync(new IdentityRole(roleName));
+
+            if (roleResult.Succeeded)
+            {
+                _logger.LogInformation(1, "Função adicionada");
+                return StatusCode(StatusCodes.Status200OK,
+                        new ResponseDTO { Status = "Sucesso", Message = $"Função {roleName} adicionada com sucesso!" });
+            }
+            else
+            {
+                _logger.LogInformation(2, "Erro");
+                return StatusCode(StatusCodes.Status400BadRequest,
+                        new ResponseDTO { Status = "Erro", Message = $"Erro ao adicionar a nova {roleName} função" });
+            }
+        }
+
+        return StatusCode(StatusCodes.Status400BadRequest,
+                        new ResponseDTO { Status = "Erro", Message = "Função já existe!" });
+    }
+
+    [HttpPost]
+    [Route("AddUserToRole")]
+    public async Task<IActionResult> AddUserToRole(string email, string roleName)
+    {
+        var user = await _userManager.FindByEmailAsync(email);
+
+        if (user != null)
+        {
+            var result = await _userManager.AddToRoleAsync(user, roleName);
+
+            if (result.Succeeded)
+            {
+                _logger.LogInformation(1, $"Usuario {user.Email} adicionado à função {roleName}");
+                return StatusCode(StatusCodes.Status200OK,
+                        new ResponseDTO { Status = "Sucesso", Message = $"Usuario {user.Email} adicionado à função {roleName}" });
+            }
+            else
+            {
+                _logger.LogInformation(1, $"Erro: não foi possível adicionar o usuario {user.Email} na função {roleName}");
+                return StatusCode(StatusCodes.Status400BadRequest, new ResponseDTO
+                {
+                    Status = "Erro",
+                    Message = $"Erro: não foi possível adicionar o usuario {user.Email} na função {roleName}"
+                });
+            }
+        }
+
+        return BadRequest(new { error = $"Não foi possível encontrar o usuario {email}" });
     }
 
     [HttpPost]
